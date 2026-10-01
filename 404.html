@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Megasult</title>
+    <meta name="robots" content="noindex" />
+    <script>
+      // Links antigos (/site/...) e páginas inexistentes voltam para o site.
+      // /site/sobre -> /sobre/ ; qualquer outro caminho -> página inicial.
+      (function () {
+        var p = location.pathname.replace(/^\/site(?=\/|$)/i, "");
+        var pages = ["sobre", "contabilidade", "consultoria", "sistemas", "marcas", "solucoes", "canal-de-etica"];
+        var first = p.split("/").filter(Boolean)[0];
+        var target = first && pages.indexOf(first.toLowerCase()) !== -1
+          ? "/" + first.toLowerCase() + "/"
+          : "/index.html";
+        location.replace(target);
+      })();
+    </script>
+  </head>
+  <body>
+    <p>Página não encontrada. <a href="/index.html">Ir para www.megasult.com.br</a></p>
+  </body>
+</html>
