@@ -54,11 +54,9 @@ document.addEventListener('DOMContentLoaded', () => {
   if (yearEl) yearEl.textContent = new Date().getFullYear();
 
   // ── Tab system (sistemas page) ─────────────────────────────
-  const tabsWrap = document.querySelector('.tabs-wrap');
   const tabBtns = document.querySelectorAll('.tab-btn');
   const tabPanes = document.querySelectorAll('.tab-pane');
   if (tabBtns.length && tabPanes.length) {
-    const indicator = tabsWrap ? tabsWrap.querySelector('.tabs-indicator') : null;
     let autoInterval;
     let userInteracted = false;
     let cardHovered = false;
@@ -75,17 +73,12 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
 
-    const moveIndicator = (idx) => {
-      if (!indicator) return;
-      const btn = tabBtns[idx];
-      indicator.style.width = btn.offsetWidth + 'px';
-      indicator.style.transform = `translateX(${btn.offsetLeft}px)`;
-    };
-
     const activateTab = (idx) => {
-      tabBtns.forEach((b, i) => b.classList.toggle('active', i === idx));
+      tabBtns.forEach((b, i) => {
+        b.classList.toggle('active', i === idx);
+        b.setAttribute('aria-selected', i === idx);
+      });
       tabPanes.forEach((p, i) => p.classList.toggle('active', i === idx));
-      moveIndicator(idx);
       current = idx;
     };
 
@@ -97,12 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     });
 
-    if (indicator) {
-      moveIndicator(current);
-      requestAnimationFrame(() => indicator.classList.add('ready'));
-      window.addEventListener('resize', () => moveIndicator(current));
-      window.addEventListener('load', () => moveIndicator(current));
-    }
+    activateTab(current);
 
     autoInterval = setInterval(() => {
       if (!userInteracted && !cardHovered) {
