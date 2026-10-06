@@ -5,10 +5,10 @@
     <title>Megasult</title>
     <meta name="robots" content="noindex" />
     <script>
-      // Links antigos (/site/...) e páginas inexistentes voltam para o site.
-      // /site/sobre -> /sobre/ ; qualquer outro caminho -> página inicial.
+      // Páginas inexistentes voltam para o site.
+      // /sobre/xyz -> /sobre/ ; qualquer outro caminho -> página inicial.
       (function () {
-        var p = location.pathname.replace(/^\/site(?=\/|$)/i, "");
+        var p = location.pathname;
         var pages = ["sobre", "contabilidade", "consultoria", "sistemas", "marcas", "solucoes", "canal-de-etica"];
         var first = p.split("/").filter(Boolean)[0];
         var target = first && pages.indexOf(first.toLowerCase()) !== -1
