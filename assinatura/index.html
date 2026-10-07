@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Gerador de Assinatura — Megasult</title>
+    <link rel="icon" type="image/png" href="../public/favicon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --navy: #1a3270;
+        --blue: #2547b0;
+        --gold: #c9a227;
+        --off: #f5f7fb;
+        --text: #0f1f4a;
+        --muted: #5a6b8a;
+        --border: rgba(26, 50, 112, 0.14);
+        --shadow: 0 4px 24px rgba(26, 50, 112, 0.08);
+        --radius: 1rem;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: "DM Sans", sans-serif;
+        color: var(--text);
+        background: var(--off);
+        -webkit-font-smoothing: antialiased;
+      }
+      header {
+        background: linear-gradient(135deg, #1a3270 0%, #2547b0 100%);
+        color: #fff;
+        padding: 1.25rem 1rem;
+      }
+      .wrap {
+        max-width: 1180px;
+        margin: 0 auto;
+      }
+      header .wrap {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+      header img {
+        height: 38px;
+      }
+      header h1 {
+        font-family: "Sora", sans-serif;
+        font-size: 1.15rem;
+        margin: 0;
+        padding-left: 1rem;
+        border-left: 1px solid rgba(255, 255, 255, 0.3);
+      }
+      main {
+        padding: 2rem 1rem 3rem;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 340px 1fr;
+        gap: 1.5rem;
+        align-items: start;
+      }
+      .card {
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 1.5rem;
+      }
+      .card h2 {
+        font-family: "Sora", sans-serif;
+        font-size: 1rem;
+        color: var(--navy);
+        margin: 0 0 1.1rem;
+      }
+      label {
+        display: block;
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin-bottom: 0.35rem;
+      }
+      label small {
+        font-weight: 400;
+        color: var(--muted);
+      }
+      input {
+        width: 100%;
+        font: inherit;
+        font-size: 0.95rem;
+        padding: 0.65rem 0.8rem;
+        border: 1px solid var(--border);
+        border-radius: 0.6rem;
+        margin-bottom: 1rem;
+        color: var(--text);
+        background: #fff;
+      }
+      input:focus {
+        outline: none;
+        border-color: var(--blue);
+        box-shadow: 0 0 0 3px rgba(37, 71, 176, 0.15);
+      }
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.6rem;
+        margin-top: 1.25rem;
+      }
+      button {
+        font: inherit;
+        font-weight: 600;
+        font-size: 0.9rem;
+        padding: 0.65rem 1rem;
+        border-radius: 0.6rem;
+        cursor: pointer;
+        border: 1px solid var(--navy);
+        background: #fff;
+        color: var(--navy);
+      }
+      button.primary {
+        background: var(--navy);
+        color: #fff;
+      }
+      button:hover {
+        filter: brightness(1.1);
+      }
+      .preview {
+        overflow-x: auto;
+        background: #fff;
+        border: 1px dashed var(--border);
+        border-radius: 0.6rem;
+        padding: 1rem;
+      }
+      .help {
+        font-size: 0.88rem;
+        color: var(--muted);
+        line-height: 1.55;
+        margin-top: 1.25rem;
+      }
+      .help ol {
+        padding-left: 1.2rem;
+        margin: 0.4rem 0 0;
+      }
+      .help strong {
+        color: var(--text);
+      }
+      #toast {
+        position: fixed;
+        left: 50%;
+        bottom: 1.5rem;
+        transform: translateX(-50%) translateY(150%);
+        background: var(--navy);
+        color: #fff;
+        padding: 0.7rem 1.2rem;
+        border-radius: 0.6rem;
+        font-size: 0.9rem;
+        transition: transform 0.25s;
+      }
+      #toast.show {
+        transform: translateX(-50%) translateY(0);
+      }
+      @media (max-width: 860px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="wrap">
+        <a href="../"><img src="../public/logo_new_texto_branco.png" alt="Megasult" /></a>
+        <h1>Gerador de Assinatura de E-mail</h1>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <div class="grid">
+        <form class="card" id="form" autocomplete="off">
+          <h2>Seus dados</h2>
+          <label for="nome">Nome</label>
+          <input id="nome" placeholder="Ex.: Marisa Capra" required />
+
+          <label for="departamento">Departamento</label>
+          <input id="departamento" placeholder="Ex.: Gerente de Operações" required />
+
+          <label for="fixo">Telefone fixo <small>(opcional)</small></label>
+          <input id="fixo" inputmode="tel" placeholder="(46) 3211-2800" />
+
+          <label for="celular">Celular <small>(opcional)</small></label>
+          <input id="celular" inputmode="tel" placeholder="(46) 99999-9999" />
+
+          <div class="actions">
+            <button type="button" class="primary" id="btnCopiar">Copiar assinatura</button>
+            <button type="button" id="btnHtml">Copiar HTML</button>
+            <button type="button" id="btnBaixar">Baixar .html</button>
+          </div>
+        </form>
+
+        <section class="card">
+          <h2>Pré-visualização</h2>
+          <div class="preview" id="preview"></div>
+          <div class="help">
+            <strong>Como usar</strong>
+            <ol>
+              <li>Preencha seus dados ao lado.</li>
+              <li>Clique em <strong>Copiar assinatura</strong>.</li>
+              <li>
+                No Gmail (Configurações › Assinatura) ou Outlook (Configurações ›
+                Assinaturas), cole com <strong>Ctrl+V</strong> no editor.
+              </li>
+            </ol>
+            Use <strong>Copiar HTML</strong> ou <strong>Baixar .html</strong> para clientes
+            que aceitam o código-fonte da assinatura.
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <div id="toast" role="status"></div>
+
+    <script>
+      // Imagens precisam de URL pública absoluta: clientes de e-mail bloqueiam data: e caminhos relativos.
+      const IMG = /megasult\.com\.br$/.test(location.hostname)
+        ? new URL("img/", location.href).href
+        : "https://www.megasult.com.br/assinatura/img/";
+
+      const $ = (id) => document.getElementById(id);
+      const campos = ["nome", "departamento", "fixo", "celular"];
+
+      const esc = (s) =>
+        s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+
+      function formatarTelefone(valor) {
+        const d = valor.replace(/\D/g, "").slice(0, 11);
+        if (d.length <= 2) return d.length ? "(" + d : "";
+        if (d.length <= 6) return `(${d.slice(0, 2)}) ${d.slice(2)}`;
+        if (d.length <= 10) return `(${d.slice(0, 2)}) ${d.slice(2, 6)}-${d.slice(6)}`;
+        return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
+      }
+
+      const font = "font-family: Arial, Helvetica, sans-serif;";
+
+      function linhaInfo(icone, alt, conteudo) {
+        return `
+            <tr>
+              <td width="24" valign="middle" style="padding: 0 0 6px 0">
+                <img src="${IMG}${icone}" width="24" height="24" alt="${alt}" style="display: block; border: 0" />
+              </td>
+              <td valign="middle" style="padding: 0 0 6px 10px; ${font} font-size: 14px; color: #2c4d69">
+                ${conteudo}
+              </td>
+            </tr>`;
+      }
+
+      function linhaTelefone(valor) {
+        const d = valor.replace(/\D/g, "");
+        if (d.length < 10) return "";
+        return linhaInfo(
+          "icon-phone.png",
+          "Telefone",
+          `<a href="tel:+55${d}" style="color: #2c4d69; text-decoration: none">${esc(valor)}</a>`,
+        );
+      }
+
+      function escritorio(cidade, tel, href, ultimo) {
+        return `
+              <td align="center" valign="top" style="padding: 8px ${ultimo ? 0 : "14px"} 0 0; ${font} font-size: 12px; line-height: 15px; color: #555555; white-space: nowrap">
+                <strong style="color: #2c4d69">${cidade}</strong><br />
+                <a href="tel:${href}" style="color: #555555; text-decoration: none">${tel}</a>
+              </td>`;
+      }
+
+      function gerarAssinatura() {
+        const nome = esc($("nome").value.trim() || "Seu Nome");
+        const depto = esc($("departamento").value.trim() || "Departamento");
+
+        return `<table cellpadding="0" cellspacing="0" border="0" width="600" style="width: 600px; border-collapse: collapse; ${font} background: #ffffff">
+      <tr>
+        <td width="250" align="center" valign="middle" style="width: 250px; padding: 16px 10px 12px 10px">
+          <img src="${IMG}logo-megasult.png" width="220" alt="Megasult" style="display: block; width: 220px; height: auto; border: 0; margin: 0 auto" />
+          <div style="${font} font-size: 18px; color: #2c4d69; line-height: 18px; margin-top: 4px">Sistemas</div>
+          <img src="${IMG}30-anos.png" width="72" alt="30 anos" style="display: block; width: 72px; height: auto; border: 0; margin: 6px auto 0 auto" />
+        </td>
+        <td width="1" style="width: 1px; padding: 14px 0">
+          <table cellpadding="0" cellspacing="0" border="0" height="170" style="border-collapse: collapse">
+            <tr>
+              <td width="1" height="170" style="width: 1px; height: 170px; background: #d5dbe1; font-size: 0; line-height: 0">&nbsp;</td>
+            </tr>
+          </table>
+        </td>
+        <td valign="middle" style="padding: 16px 10px 12px 34px">
+          <div style="${font} font-size: 24px; font-weight: bold; color: #2c4d69; line-height: 28px">${nome}</div>
+          <div style="${font} font-size: 16px; font-weight: bold; color: #555555; line-height: 20px; margin: 6px 0 14px 0">${depto}</div>
+          <table cellpadding="0" cellspacing="0" border="0" style="border-collapse: collapse">${linhaTelefone($("fixo").value)}${linhaTelefone($("celular").value)}${linhaInfo("icon-location.png", "Endereço", "Francisco Beltrão - PR")}${linhaInfo(
+            "icon-web.png",
+            "Site",
+            '<a href="https://www.megasult.com.br" target="_blank" style="color: #2c4d69; text-decoration: none">www.megasult.com.br</a>',
+          )}
+          </table>
+          <table cellpadding="0" cellspacing="0" border="0" style="border-collapse: collapse; margin-top: 4px; border-top: 1px solid #d5dbe1">
+            <tr>${escritorio("Maringá - PR", "(44) 3225-0311", "+554432250311")}${escritorio("Londrina - PR", "(43) 3027-1918", "+554330271918")}${escritorio("Curitiba - PR", "(41) 3018-5808", "+554130185808", true)}
+            </tr>
+          </table>
+        </td>
+      </tr>
+      <tr>
+        <td colspan="3" style="padding: 0; font-size: 0; line-height: 0">
+          <img src="${IMG}barra.png" width="600" height="11" alt="" style="display: block; width: 600px; height: 11px; border: 0" />
+        </td>
+      </tr>
+    </table>`;
+      }
+
+      function documentoCompleto() {
+        return `<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Assinatura - ${esc($("nome").value.trim() || "Megasult")}</title>
+  </head>
+  <body style="margin: 0; padding: 0; background: #ffffff">
+    <!-- INÍCIO DA ASSINATURA -->
+    ${gerarAssinatura()}
+    <!-- FIM DA ASSINATURA -->
+  </body>
+</html>
+`;
+      }
+
+      function atualizar() {
+        $("preview").innerHTML = gerarAssinatura();
+      }
+
+      let toastTimer;
+      function toast(msg) {
+        $("toast").textContent = msg;
+        $("toast").classList.add("show");
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => $("toast").classList.remove("show"), 2500);
+      }
+
+      function validar() {
+        if ($("form").reportValidity()) return true;
+        toast("Preencha nome e departamento.");
+        return false;
+      }
+
+      async function copiarAssinatura() {
+        if (!validar()) return;
+        const html = gerarAssinatura();
+        try {
+          await navigator.clipboard.write([
+            new ClipboardItem({
+              "text/html": new Blob([html], { type: "text/html" }),
+              "text/plain": new Blob([$("preview").innerText], { type: "text/plain" }),
+            }),
+          ]);
+        } catch {
+          // Fallback: seleciona a prévia renderizada e copia.
+          const range = document.createRange();
+          range.selectNodeContents($("preview"));
+          const sel = getSelection();
+          sel.removeAllRanges();
+          sel.addRange(range);
+          document.execCommand("copy");
+          sel.removeAllRanges();
+        }
+        toast("Assinatura copiada! Cole no editor de assinatura.");
+      }
+
+      async function copiarHtml() {
+        if (!validar()) return;
+        await navigator.clipboard.writeText(documentoCompleto());
+        toast("Código HTML copiado!");
+      }
+
+      function baixar() {
+        if (!validar()) return;
+        const slug =
+          $("nome").value.trim().normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "assinatura";
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(new Blob([documentoCompleto()], { type: "text/html" }));
+        a.download = `assinatura-${slug}.html`;
+        a.click();
+        URL.revokeObjectURL(a.href);
+      }
+
+      ["fixo", "celular"].forEach((id) =>
+        $(id).addEventListener("input", (e) => (e.target.value = formatarTelefone(e.target.value))),
+      );
+      campos.forEach((id) => $(id).addEventListener("input", atualizar));
+      $("btnCopiar").addEventListener("click", copiarAssinatura);
+      $("btnHtml").addEventListener("click", copiarHtml);
+      $("btnBaixar").addEventListener("click", baixar);
+      atualizar();
+    </script>
+  </body>
+</html>
