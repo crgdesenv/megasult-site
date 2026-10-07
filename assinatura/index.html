@@ -90,7 +90,8 @@
         font-weight: 400;
         color: var(--muted);
       }
-      input {
+      input:not([type]),
+      select {
         width: 100%;
         font: inherit;
         font-size: 0.95rem;
@@ -101,7 +102,34 @@
         color: var(--text);
         background: #fff;
       }
-      input:focus {
+      fieldset {
+        border: 0;
+        padding: 0;
+        margin: 0 0 1rem;
+      }
+      legend {
+        font-size: 0.85rem;
+        font-weight: 600;
+        padding: 0;
+        margin-bottom: 0.45rem;
+      }
+      .check {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-weight: 400;
+        font-size: 0.92rem;
+        margin-bottom: 0.3rem;
+        cursor: pointer;
+      }
+      .check input {
+        accent-color: var(--navy);
+        width: 1rem;
+        height: 1rem;
+        margin: 0;
+      }
+      input:focus,
+      select:focus {
         outline: none;
         border-color: var(--blue);
         box-shadow: 0 0 0 3px rgba(37, 71, 176, 0.15);
@@ -196,6 +224,17 @@
           <label for="celular">Celular <small>(opcional)</small></label>
           <input id="celular" inputmode="tel" placeholder="(46) 99999-9999" />
 
+          <fieldset id="areas">
+            <legend>Áreas <small>(abaixo do logo)</small></legend>
+            <label class="check"><input type="checkbox" value="Sistemas" checked /> Sistemas</label>
+            <label class="check"><input type="checkbox" value="Contabilidade" /> Contabilidade</label>
+            <label class="check"><input type="checkbox" value="Consultoria" /> Consultoria</label>
+            <label class="check"><input type="checkbox" value="Marcas &amp; Patentes" /> Marcas &amp; Patentes</label>
+          </fieldset>
+
+          <label for="cidade">Cidade</label>
+          <select id="cidade"></select>
+
           <div class="actions">
             <button type="button" class="primary" id="btnCopiar">Copiar assinatura</button>
             <button type="button" id="btnHtml">Copiar HTML</button>
@@ -232,7 +271,6 @@
         : "https://www.megasult.com.br/assinatura/img/";
 
       const $ = (id) => document.getElementById(id);
-      const campos = ["nome", "departamento", "fixo", "celular"];
 
       const esc = (s) =>
         s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
@@ -259,33 +297,55 @@
             </tr>`;
       }
 
-      function linhaTelefone(valor) {
-        const d = valor.replace(/\D/g, "");
-        if (d.length < 10) return "";
+      const CIDADES = [
+        { nome: "Francisco Beltrão - PR", tel: "(46) 3211-2800" },
+        { nome: "Maringá - PR", tel: "(44) 3225-0311" },
+        { nome: "Londrina - PR", tel: "(43) 3027-1918" },
+        { nome: "Curitiba - PR", tel: "(41) 3018-5808" },
+      ];
+      $("cidade").innerHTML = CIDADES.map((c, i) => `<option value="${i}">${c.nome}</option>`).join("");
+
+      const linkTel = (valor, cor) =>
+        `<a href="tel:+55${valor.replace(/\D/g, "")}" style="color: ${cor}; text-decoration: none">${esc(valor)}</a>`;
+
+      // Fixo e celular na mesma linha, separados por pipe.
+      function linhaTelefones() {
+        const tels = [$("fixo").value, $("celular").value].filter((v) => v.replace(/\D/g, "").length >= 10);
+        if (!tels.length) return "";
         return linhaInfo(
           "icon-phone.png",
           "Telefone",
-          `<a href="tel:+55${d}" style="color: #2c4d69; text-decoration: none">${esc(valor)}</a>`,
+          tels.map((t) => linkTel(t, "#2c4d69")).join('<span style="color: #999999">&nbsp;&nbsp;|&nbsp;&nbsp;</span>'),
         );
       }
 
-      function escritorio(cidade, tel, href, ultimo) {
+      function escritorio(c, ultimo) {
         return `
               <td align="center" valign="top" style="padding: 8px ${ultimo ? 0 : "14px"} 0 0; ${font} font-size: 12px; line-height: 15px; color: #555555; white-space: nowrap">
-                <strong style="color: #2c4d69">${cidade}</strong><br />
-                <a href="tel:${href}" style="color: #555555; text-decoration: none">${tel}</a>
+                <strong style="color: #2c4d69">${c.nome}</strong><br />
+                ${linkTel(c.tel, "#555555")}
               </td>`;
+      }
+
+      function blocoAreas() {
+        const areas = [...document.querySelectorAll("#areas input:checked")].map((i) => esc(i.value));
+        if (!areas.length) return "";
+        // Diminui a fonte conforme a quantidade para caber na coluna de 250px.
+        const tamanho = areas.length === 1 ? 18 : areas.length === 2 ? 14 : 12;
+        return `<div style="${font} font-size: ${tamanho}px; color: #2c4d69; line-height: ${tamanho + 4}px; margin-top: 4px">${areas.join(" | ")}</div>`;
       }
 
       function gerarAssinatura() {
         const nome = esc($("nome").value.trim() || "Seu Nome");
         const depto = esc($("departamento").value.trim() || "Departamento");
+        const cidade = CIDADES[$("cidade").value];
+        const outras = CIDADES.filter((c) => c !== cidade);
 
         return `<table cellpadding="0" cellspacing="0" border="0" width="600" style="width: 600px; border-collapse: collapse; ${font} background: #ffffff">
       <tr>
         <td width="250" align="center" valign="middle" style="width: 250px; padding: 16px 10px 12px 10px">
           <img src="${IMG}logo-megasult.png" width="220" alt="Megasult" style="display: block; width: 220px; height: auto; border: 0; margin: 0 auto" />
-          <div style="${font} font-size: 18px; color: #2c4d69; line-height: 18px; margin-top: 4px">Sistemas</div>
+          ${blocoAreas()}
           <img src="${IMG}30-anos.png" width="72" alt="30 anos" style="display: block; width: 72px; height: auto; border: 0; margin: 6px auto 0 auto" />
         </td>
         <td width="1" style="width: 1px; padding: 14px 0">
@@ -298,14 +358,14 @@
         <td valign="middle" style="padding: 16px 10px 12px 34px">
           <div style="${font} font-size: 24px; font-weight: bold; color: #2c4d69; line-height: 28px">${nome}</div>
           <div style="${font} font-size: 16px; font-weight: bold; color: #555555; line-height: 20px; margin: 6px 0 14px 0">${depto}</div>
-          <table cellpadding="0" cellspacing="0" border="0" style="border-collapse: collapse">${linhaTelefone($("fixo").value)}${linhaTelefone($("celular").value)}${linhaInfo("icon-location.png", "Endereço", "Francisco Beltrão - PR")}${linhaInfo(
+          <table cellpadding="0" cellspacing="0" border="0" style="border-collapse: collapse">${linhaTelefones()}${linhaInfo("icon-location.png", "Endereço", cidade.nome)}${linhaInfo(
             "icon-web.png",
             "Site",
             '<a href="https://www.megasult.com.br" target="_blank" style="color: #2c4d69; text-decoration: none">www.megasult.com.br</a>',
           )}
           </table>
           <table cellpadding="0" cellspacing="0" border="0" style="border-collapse: collapse; margin-top: 4px; border-top: 1px solid #d5dbe1">
-            <tr>${escritorio("Maringá - PR", "(44) 3225-0311", "+554432250311")}${escritorio("Londrina - PR", "(43) 3027-1918", "+554330271918")}${escritorio("Curitiba - PR", "(41) 3018-5808", "+554130185808", true)}
+            <tr>${outras.map((c, i) => escritorio(c, i === outras.length - 1)).join("")}
             </tr>
           </table>
         </td>
@@ -395,7 +455,8 @@
       ["fixo", "celular"].forEach((id) =>
         $(id).addEventListener("input", (e) => (e.target.value = formatarTelefone(e.target.value))),
       );
-      campos.forEach((id) => $(id).addEventListener("input", atualizar));
+      $("form").addEventListener("input", atualizar);
+      $("form").addEventListener("change", atualizar);
       $("btnCopiar").addEventListener("click", copiarAssinatura);
       $("btnHtml").addEventListener("click", copiarHtml);
       $("btnBaixar").addEventListener("click", baixar);
