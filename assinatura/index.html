@@ -193,6 +193,41 @@
       #toast.show {
         transform: translateX(-50%) translateY(0);
       }
+      body.bloqueado header,
+      body.bloqueado main {
+        display: none;
+      }
+      #acesso {
+        display: none;
+        min-height: 100vh;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+        background: linear-gradient(135deg, #1a3270 0%, #2547b0 100%);
+      }
+      body.bloqueado #acesso {
+        display: flex;
+      }
+      #acesso form {
+        width: 100%;
+        max-width: 320px;
+        text-align: center;
+      }
+      #acesso img {
+        height: 38px;
+        margin-bottom: 1rem;
+      }
+      #senha {
+        text-align: center;
+        letter-spacing: 0.5em;
+        font-size: 1.3rem;
+      }
+      #erroSenha {
+        color: #c0392b;
+        font-size: 0.85rem;
+        min-height: 1.2em;
+        margin: -0.5rem 0 0.75rem;
+      }
       @media (max-width: 860px) {
         .grid {
           grid-template-columns: 1fr;
@@ -200,7 +235,18 @@
       }
     </style>
   </head>
-  <body>
+  <body class="bloqueado">
+    <div id="acesso">
+      <form class="card" id="formAcesso" autocomplete="off">
+        <img src="../public/logo_new_texto_branco.png" alt="Megasult" style="filter: brightness(0.25)" />
+        <h2>Acesso restrito</h2>
+        <label for="senha">Senha</label>
+        <input id="senha" inputmode="numeric" maxlength="4" autofocus />
+        <div id="erroSenha" role="alert"></div>
+        <button type="submit" class="primary" style="width: 100%">Entrar</button>
+      </form>
+    </div>
+
     <header>
       <div class="wrap">
         <a href="../"><img src="../public/logo_new_texto_branco.png" alt="Megasult" /></a>
@@ -265,6 +311,9 @@
     <div id="toast" role="status"></div>
 
     <script>
+      // Acesso: compara SHA-256("mgs:" + senha). Para trocar a senha, gere o novo hash e substitua H.
+      (()=>{const H="c9375c564a269c1e86cb5188fa62204916d2594ce66c5e45ae856c22e5d88ff7",K="_a",d=document,g=i=>d.getElementById(i),o=()=>{d.body.classList.remove("bloqueado");try{sessionStorage.setItem(K,H.slice(0,8))}catch{}};try{sessionStorage.getItem(K)===H.slice(0,8)&&o()}catch{}g("formAcesso").addEventListener("submit",async e=>{e.preventDefault();const c=g("senha"),b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode("mgs:"+c.value)),h=[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("");if(h===H)return o();g("erroSenha").textContent="Senha incorreta.";c.value="";c.focus()})})();
+
       // Imagens precisam de URL pública absoluta: clientes de e-mail bloqueiam data: e caminhos relativos.
       const IMG = /megasult\.com\.br$/.test(location.hostname)
         ? new URL("img/", location.href).href
@@ -298,12 +347,13 @@
       }
 
       const CIDADES = [
-        { nome: "Francisco Beltrão - PR", tel: "(46) 3211-2800" },
-        { nome: "Maringá - PR", tel: "(44) 3225-0311" },
-        { nome: "Londrina - PR", tel: "(43) 3027-1918" },
         { nome: "Curitiba - PR", tel: "(41) 3018-5808" },
+        { nome: "Francisco Beltrão - PR", tel: "(46) 3211-2800" },
+        { nome: "Londrina - PR", tel: "(43) 3027-1918" },
+        { nome: "Maringá - PR", tel: "(44) 3225-0311" },
       ];
       $("cidade").innerHTML = CIDADES.map((c, i) => `<option value="${i}">${c.nome}</option>`).join("");
+      $("cidade").value = CIDADES.findIndex((c) => c.nome.startsWith("Francisco Beltrão"));
 
       const linkTel = (valor, cor) =>
         `<a href="tel:+55${valor.replace(/\D/g, "")}" style="color: ${cor}; text-decoration: none">${esc(valor)}</a>`;
