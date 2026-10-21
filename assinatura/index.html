@@ -358,9 +358,11 @@
       $("cidade").innerHTML = CIDADES.map((c, i) => `<option value="${i}">${c.nome}</option>`).join("");
       $("cidade").value = CIDADES.findIndex((c) => c.nome.startsWith("Francisco Beltrão"));
 
-      // Span interno com cor: o Outlook às vezes ignora a cor do <a> e aplica azul sublinhado.
+      // Span interno com cor: Word/Outlook aplicam o estilo "Hiperlink" (azul sublinhado);
+      // text-underline: none é a propriedade do Office que remove o sublinhado.
+      const semLinha = "text-decoration: none; text-underline: none;";
       const link = (href, texto, cor) =>
-        `<a href="${href}" target="_blank" style="color: ${cor}; text-decoration: none"><span style="color: ${cor}; text-decoration: none">${texto}</span></a>`;
+        `<a href="${href}" target="_blank" style="color: ${cor}; ${semLinha}"><span style="color: ${cor}; ${semLinha}">${texto}</span></a>`;
       const linkTel = (valor, cor) => link(`tel:+55${valor.replace(/\D/g, "")}`, nbsp(esc(valor)), cor);
 
       // Fixo e celular na mesma linha, separados por pipe.
@@ -411,14 +413,7 @@
             </tr>
           </table>
         </td>
-        <td width="1" valign="middle" style="width: 1px; padding: 14px 0">
-          <table ${tabela} width="1">
-            <tr>
-              <td width="1" height="170" bgcolor="#d5dbe1" style="width: 1px; height: 170px; background: #d5dbe1; font-size: 1px; ${lh(1)}">&nbsp;</td>
-            </tr>
-          </table>
-        </td>
-        <td valign="middle" style="padding: 16px 10px 12px 34px">
+        <td valign="middle" style="padding: 16px 10px 12px 34px; border-left: 1px solid #d5dbe1">
           <table ${tabela}>
             <tr>
               <td style="${font} font-size: 24px; font-weight: bold; ${lh(28)} color: #2c4d69">${nome}</td>
@@ -448,7 +443,7 @@
         </td>
       </tr>
       <tr>
-        <td colspan="3" style="padding: 0; font-size: 0; ${lh(0)}">${img("barra.png", 600, 11, "")}</td>
+        <td colspan="2" style="padding: 0; font-size: 0; ${lh(0)}">${img("barra.png", 600, 11, "")}</td>
       </tr>
     </table>`;
       }
