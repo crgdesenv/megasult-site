@@ -414,7 +414,14 @@
             </tr>
           </table>
         </td>
-        <td valign="middle" style="padding: 16px 10px 12px 34px; border-left: 1px solid #d5dbe1">
+        <td width="1" valign="middle" style="width: 1px; padding: 0">
+          <table ${tabela} width="1">
+            <tr>
+              <td width="1" height="${alturaLinha}" style="width: 1px; height: ${alturaLinha}px; border-left: 1px solid #d5dbe1; font-size: 1px; ${lh(1)}">&nbsp;</td>
+            </tr>
+          </table>
+        </td>
+        <td valign="middle" style="padding: 16px 10px 12px 34px">
           <table ${tabela}>
             <tr>
               <td style="${font} font-size: 24px; font-weight: bold; ${lh(28)} color: #2c4d69">${nome}</td>
@@ -444,7 +451,7 @@
         </td>
       </tr>
       <tr>
-        <td colspan="2" style="padding: 0; font-size: 0; ${lh(0)}">${img("barra.png", 600, 11, "")}</td>
+        <td colspan="3" style="padding: 0; font-size: 0; ${lh(0)}">${img("barra.png", 600, 11, "")}</td>
       </tr>
     </table>`;
       }
@@ -466,8 +473,16 @@
 `;
       }
 
+      // Linha vertical com altura fixa (Word não estica 100%): mede a coluna de dados na
+      // prévia e desconta 14px em cima e embaixo para manter o recuo nas pontas.
+      let alturaLinha = 170;
       function atualizar() {
         $("preview").innerHTML = gerarAssinatura();
+        const altura = $("preview").querySelector("tr").lastElementChild.offsetHeight - 28;
+        if (altura > 0 && altura !== alturaLinha) {
+          alturaLinha = altura;
+          $("preview").innerHTML = gerarAssinatura();
+        }
       }
 
       let toastTimer;
