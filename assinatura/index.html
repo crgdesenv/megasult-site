@@ -361,6 +361,8 @@
       // Span interno com cor: Word/Outlook aplicam o estilo "Hiperlink" (azul sublinhado);
       // text-underline: none é a propriedade do Office que remove o sublinhado.
       const semLinha = "text-decoration: none; text-underline: none;";
+      // Redefine os estilos "Hiperlink" do Word, que senão sublinham todo link ao colar.
+      const ESTILO_OFFICE = `<style>a:link, a:visited, span.MsoHyperlink, span.MsoHyperlinkFollowed { mso-style-priority: 99; color: inherit; ${semLinha} }</style>`;
       const link = (href, texto, cor) =>
         `<a href="${href}" target="_blank" style="color: ${cor}; ${semLinha}"><span style="color: ${cor}; ${semLinha}">${texto}</span></a>`;
       const linkTel = (valor, cor) => link(`tel:+55${valor.replace(/\D/g, "")}`, nbsp(esc(valor)), cor);
@@ -453,6 +455,7 @@
 <html lang="pt-BR">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    ${ESTILO_OFFICE}
     <title>Assinatura -${esc($("nome").value.trim() || "Megasult")}</title>
   </head>
   <body style="margin: 0; padding: 0; background: #ffffff">
@@ -482,27 +485,20 @@
         return false;
       }
 
-      async function copiarAssinatura() {
+      // Usa o evento copy em vez de navigator.clipboard.write: o Chrome higieniza o HTML
+      // da API assíncrona e remove <style> e propriedades do Office (text-underline).
+      function copiarAssinatura() {
         if (!validar()) return;
-        const html = gerarAssinatura();
-        try {
-          await navigator.clipboard.write([
-            new ClipboardItem({
-              "text/html": new Blob([html], { type: "text/html" }),
-              "text/plain": new Blob([$("preview").innerText], { type: "text/plain" }),
-            }),
-          ]);
-        } catch {
-          // Fallback: seleciona a prévia renderizada e copia.
-          const range = document.createRange();
-          range.selectNodeContents($("preview"));
-          const sel = getSelection();
-          sel.removeAllRanges();
-          sel.addRange(range);
-          document.execCommand("copy");
-          sel.removeAllRanges();
-        }
-        toast("Assinatura copiada! Cole no editor de assinatura.");
+        const html = `<html><head><meta charset="utf-8" />${ESTILO_OFFICE}</head><body>${gerarAssinatura()}</body></html>`;
+        const aoCopiar = (e) => {
+          e.clipboardData.setData("text/html", html);
+          e.clipboardData.setData("text/plain", $("preview").innerText);
+          e.preventDefault();
+        };
+        document.addEventListener("copy", aoCopiar);
+        const ok = document.execCommand("copy");
+        document.removeEventListener("copy", aoCopiar);
+        toast(ok ? "Assinatura copiada! Cole no editor de assinatura." : "Não foi possível copiar. Use Baixar .html.");
       }
 
       async function copiarHtml() {
