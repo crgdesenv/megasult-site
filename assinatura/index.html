@@ -332,17 +332,20 @@
         return `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
       }
 
+      // Compatível com Outlook (motor do Word): só tabelas, espaçamento por padding de td,
+      // imagens com width/height em atributo, line-height exato e fonte declarada em cada célula.
       const font = "font-family: Arial, Helvetica, sans-serif;";
+      const lh = (px) => `mso-line-height-rule: exactly; line-height: ${px}px;`;
+      const tabela = 'cellpadding="0" cellspacing="0" border="0" role="presentation" style="border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt"';
+      const img = (arquivo, w, h, alt) =>
+        `<img src="${IMG}${arquivo}" width="${w}" height="${h}" alt="${alt}" border="0" style="display: block; width: ${w}px; height: ${h}px; border: 0; outline: none; -ms-interpolation-mode: bicubic" />`;
+      const nbsp = (s) => s.replace(/ /g, "&nbsp;");
 
       function linhaInfo(icone, alt, conteudo) {
         return `
             <tr>
-              <td width="24" valign="middle" style="padding: 0 0 6px 0">
-                <img src="${IMG}${icone}" width="24" height="24" alt="${alt}" style="display: block; border: 0" />
-              </td>
-              <td valign="middle" style="padding: 0 0 6px 10px; ${font} font-size: 14px; color: #2c4d69">
-                ${conteudo}
-              </td>
+              <td width="24" valign="middle" style="width: 24px; padding: 0 0 6px 0; font-size: 0; ${lh(0)}">${img(icone, 24, 24, alt)}</td>
+              <td valign="middle" style="padding: 0 0 6px 10px; ${font} font-size: 14px; ${lh(18)} color: #2c4d69">${conteudo}</td>
             </tr>`;
       }
 
@@ -355,8 +358,10 @@
       $("cidade").innerHTML = CIDADES.map((c, i) => `<option value="${i}">${c.nome}</option>`).join("");
       $("cidade").value = CIDADES.findIndex((c) => c.nome.startsWith("Francisco Beltrão"));
 
-      const linkTel = (valor, cor) =>
-        `<a href="tel:+55${valor.replace(/\D/g, "")}" style="color: ${cor}; text-decoration: none">${esc(valor)}</a>`;
+      // Span interno com cor: o Outlook às vezes ignora a cor do <a> e aplica azul sublinhado.
+      const link = (href, texto, cor) =>
+        `<a href="${href}" target="_blank" style="color: ${cor}; text-decoration: none"><span style="color: ${cor}; text-decoration: none">${texto}</span></a>`;
+      const linkTel = (valor, cor) => link(`tel:+55${valor.replace(/\D/g, "")}`, nbsp(esc(valor)), cor);
 
       // Fixo e celular na mesma linha, separados por pipe.
       function linhaTelefones() {
@@ -369,11 +374,11 @@
         );
       }
 
+      // Outlook ignora white-space: nowrap; &nbsp; impede a quebra do nome da cidade.
       function escritorio(c, ultimo) {
         return `
-              <td align="center" valign="top" style="padding: 8px ${ultimo ? 0 : "14px"} 0 0; ${font} font-size: 12px; line-height: 15px; color: #555555; white-space: nowrap">
-                <strong style="color: #2c4d69">${c.nome}</strong><br />
-                ${linkTel(c.tel, "#555555")}
+              <td align="center" valign="top" style="padding: 8px ${ultimo ? 0 : "14px"} 0 0; border-top: 1px solid #d5dbe1; ${font} font-size: 12px; ${lh(15)} color: #555555">
+                <b style="color: #2c4d69">${nbsp(c.nome)}</b><br />${linkTel(c.tel, "#555555")}
               </td>`;
       }
 
@@ -382,7 +387,10 @@
         if (!areas.length) return "";
         // Diminui a fonte conforme a quantidade para caber na coluna de 250px.
         const tamanho = areas.length === 1 ? 18 : areas.length === 2 ? 14 : 12;
-        return `<div style="${font} font-size: ${tamanho}px; color: #2c4d69; line-height: ${tamanho + 4}px; margin-top: 4px">${areas.join(" | ")}</div>`;
+        return `
+                <tr>
+                  <td align="center" style="padding: 4px 0 0 0; ${font} font-size: ${tamanho}px; ${lh(tamanho + 4)} color: #2c4d69">${areas.join(" | ")}</td>
+                </tr>`;
       }
 
       function gerarAssinatura() {
@@ -391,39 +399,56 @@
         const cidade = CIDADES[$("cidade").value];
         const outras = CIDADES.filter((c) => c !== cidade);
 
-        return `<table cellpadding="0" cellspacing="0" border="0" width="600" style="width: 600px; border-collapse: collapse; ${font} background: #ffffff">
+        return `<table ${tabela} width="600" bgcolor="#ffffff">
       <tr>
         <td width="250" align="center" valign="middle" style="width: 250px; padding: 16px 10px 12px 10px">
-          <img src="${IMG}logo-megasult.png" width="220" alt="Megasult" style="display: block; width: 220px; height: auto; border: 0; margin: 0 auto" />
-          ${blocoAreas()}
-          <img src="${IMG}30-anos.png" width="72" alt="30 anos" style="display: block; width: 72px; height: auto; border: 0; margin: 6px auto 0 auto" />
-        </td>
-        <td width="1" style="width: 1px; padding: 14px 0">
-          <table cellpadding="0" cellspacing="0" border="0" height="170" style="border-collapse: collapse">
+          <table ${tabela} align="center">
             <tr>
-              <td width="1" height="170" style="width: 1px; height: 170px; background: #d5dbe1; font-size: 0; line-height: 0">&nbsp;</td>
+              <td align="center" style="font-size: 0; ${lh(0)}">${img("logo-megasult.png", 220, 86, "Megasult")}</td>
+            </tr>${blocoAreas()}
+            <tr>
+              <td align="center" style="padding: 6px 0 0 0; font-size: 0; ${lh(0)}">${img("30-anos.png", 72, 56, "30 anos")}</td>
+            </tr>
+          </table>
+        </td>
+        <td width="1" valign="middle" style="width: 1px; padding: 14px 0">
+          <table ${tabela} width="1">
+            <tr>
+              <td width="1" height="170" bgcolor="#d5dbe1" style="width: 1px; height: 170px; background: #d5dbe1; font-size: 1px; ${lh(1)}">&nbsp;</td>
             </tr>
           </table>
         </td>
         <td valign="middle" style="padding: 16px 10px 12px 34px">
-          <div style="${font} font-size: 24px; font-weight: bold; color: #2c4d69; line-height: 28px">${nome}</div>
-          <div style="${font} font-size: 16px; font-weight: bold; color: #555555; line-height: 20px; margin: 6px 0 14px 0">${depto}</div>
-          <table cellpadding="0" cellspacing="0" border="0" style="border-collapse: collapse">${linhaTelefones()}${linhaInfo("icon-location.png", "Endereço", cidade.nome)}${linhaInfo(
-            "icon-web.png",
-            "Site",
-            '<a href="https://www.megasult.com.br" target="_blank" style="color: #2c4d69; text-decoration: none">www.megasult.com.br</a>',
-          )}
-          </table>
-          <table cellpadding="0" cellspacing="0" border="0" style="border-collapse: collapse; margin-top: 4px; border-top: 1px solid #d5dbe1">
-            <tr>${outras.map((c, i) => escritorio(c, i === outras.length - 1)).join("")}
+          <table ${tabela}>
+            <tr>
+              <td style="${font} font-size: 24px; font-weight: bold; ${lh(28)} color: #2c4d69">${nome}</td>
+            </tr>
+            <tr>
+              <td style="padding: 6px 0 14px 0; ${font} font-size: 16px; font-weight: bold; ${lh(20)} color: #555555">${depto}</td>
+            </tr>
+            <tr>
+              <td>
+                <table ${tabela}>${linhaTelefones()}${linhaInfo("icon-location.png", "Endereço", nbsp(cidade.nome))}${linhaInfo(
+                  "icon-web.png",
+                  "Site",
+                  link("https://www.megasult.com.br", "www.megasult.com.br", "#2c4d69"),
+                )}
+                </table>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 4px 0 0 0">
+                <table ${tabela}>
+                  <tr>${outras.map((c, i) => escritorio(c, i === outras.length - 1)).join("")}
+                  </tr>
+                </table>
+              </td>
             </tr>
           </table>
         </td>
       </tr>
       <tr>
-        <td colspan="3" style="padding: 0; font-size: 0; line-height: 0">
-          <img src="${IMG}barra.png" width="600" height="11" alt="" style="display: block; width: 600px; height: 11px; border: 0" />
-        </td>
+        <td colspan="3" style="padding: 0; font-size: 0; ${lh(0)}">${img("barra.png", 600, 11, "")}</td>
       </tr>
     </table>`;
       }
@@ -432,8 +457,8 @@
         return `<!doctype html>
 <html lang="pt-BR">
   <head>
-    <meta charset="UTF-8" />
-    <title>Assinatura - ${esc($("nome").value.trim() || "Megasult")}</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Assinatura -${esc($("nome").value.trim() || "Megasult")}</title>
   </head>
   <body style="margin: 0; padding: 0; background: #ffffff">
     <!-- INÍCIO DA ASSINATURA -->
