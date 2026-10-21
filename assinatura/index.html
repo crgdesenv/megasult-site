@@ -474,11 +474,11 @@
       }
 
       // Linha vertical com altura fixa (Word não estica 100%): mede a coluna de dados na
-      // prévia e desconta 14px em cima e embaixo para manter o recuo nas pontas.
+      // prévia e desconta 18px em cima e embaixo para manter o recuo nas pontas.
       let alturaLinha = 170;
       function atualizar() {
         $("preview").innerHTML = gerarAssinatura();
-        const altura = $("preview").querySelector("tr").lastElementChild.offsetHeight - 28;
+        const altura = $("preview").querySelector("tr").lastElementChild.offsetHeight - 36;
         if (altura > 0 && altura !== alturaLinha) {
           alturaLinha = altura;
           $("preview").innerHTML = gerarAssinatura();
