@@ -301,8 +301,8 @@
                 Assinaturas), cole com <strong>Ctrl+V</strong> no editor.
               </li>
             </ol>
-            Use <strong>Copiar HTML</strong> ou <strong>Baixar .html</strong> para clientes
-            que aceitam o código-fonte da assinatura.
+            Para clientes de e-mail, como o Thunderbird, que permitem inserir o código-fonte HTML
+            da assinatura, utilize a opção <strong>Copiar HTML</strong> ou <strong>Baixar .html</strong>.
           </div>
         </section>
       </div>
@@ -358,14 +358,13 @@
       $("cidade").innerHTML = CIDADES.map((c, i) => `<option value="${i}">${c.nome}</option>`).join("");
       $("cidade").value = CIDADES.findIndex((c) => c.nome.startsWith("Francisco Beltrão"));
 
-      // Span interno com cor: Word/Outlook aplicam o estilo "Hiperlink" (azul sublinhado);
-      // text-underline: none é a propriedade do Office que remove o sublinhado.
+      // Sem <a>: o Outlook sublinha link colado mesmo com text-underline: none e põe um
+      // ponto antes do telefone. Texto puro; o estilo abaixo só cobre links que o cliente
+      // criar sozinho (autolink de URL/telefone).
       const semLinha = "text-decoration: none; text-underline: none;";
-      // Redefine os estilos "Hiperlink" do Word, que senão sublinham todo link ao colar.
       const ESTILO_OFFICE = `<style>a:link, a:visited, span.MsoHyperlink, span.MsoHyperlinkFollowed { mso-style-priority: 99; color: inherit; ${semLinha} }</style>`;
-      const link = (href, texto, cor) =>
-        `<a href="${href}" target="_blank" style="color: ${cor}; ${semLinha}"><span style="color: ${cor}; ${semLinha}">${texto}</span></a>`;
-      const linkTel = (valor, cor) => link(`tel:+55${valor.replace(/\D/g, "")}`, nbsp(esc(valor)), cor);
+      const texto = (valor, cor) => `<span style="color: ${cor}; ${semLinha}">${valor}</span>`;
+      const telefone = (valor, cor) => texto(nbsp(esc(valor)), cor);
 
       // Fixo e celular na mesma linha, separados por pipe.
       function linhaTelefones() {
@@ -374,7 +373,7 @@
         return linhaInfo(
           "icon-phone.png",
           "Telefone",
-          tels.map((t) => linkTel(t, "#2c4d69")).join('<span style="color: #999999">&nbsp;&nbsp;|&nbsp;&nbsp;</span>'),
+          tels.map((t) => telefone(t, "#2c4d69")).join('<span style="color: #999999">&nbsp;&nbsp;|&nbsp;&nbsp;</span>'),
         );
       }
 
@@ -382,7 +381,7 @@
       function escritorio(c, ultimo) {
         return `
               <td align="center" valign="top" style="padding: 8px ${ultimo ? 0 : "14px"} 0 0; border-top: 1px solid #d5dbe1; ${font} font-size: 12px; ${lh(15)} color: #555555">
-                <b style="color: #2c4d69">${nbsp(c.nome)}</b><br />${linkTel(c.tel, "#555555")}
+                <b style="color: #2c4d69">${nbsp(c.nome)}</b><br />${telefone(c.tel, "#555555")}
               </td>`;
       }
 
@@ -428,7 +427,7 @@
                 <table ${tabela}>${linhaTelefones()}${linhaInfo("icon-location.png", "Endereço", nbsp(cidade.nome))}${linhaInfo(
                   "icon-web.png",
                   "Site",
-                  link("https://www.megasult.com.br", "www.megasult.com.br", "#2c4d69"),
+                  texto("www.megasult.com.br", "#2c4d69"),
                 )}
                 </table>
               </td>
